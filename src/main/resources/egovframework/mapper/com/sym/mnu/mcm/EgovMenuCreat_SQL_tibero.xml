@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="menuManageDAO">
+	
+	<select id="selectMenuCreatManageList_D" parameterType="comDefaultVO" resultType="egovMap">
+		
+                SELECT * 
+                FROM  
+                    (SELECT rownum rn, TB.* 
+                     FROM 
+			            (SELECT AUTHOR_CODE   AS AUTHOR_CODE,
+								AUTHOR_NM     AS AUTHOR_NM,
+								AUTHOR_DC     AS AUTHOR_DC,
+								AUTHOR_CREAT_DE AS AUTHOR_CREAT_DE,
+							   (SELECT COUNT(B.AUTHOR_CODE)
+								FROM   COMTNMENUCREATDTLS B
+								WHERE  B.AUTHOR_CODE = A.AUTHOR_CODE ) AS CHK_YEO_BU
+						FROM    COMTNAUTHORINFO A
+						WHERE   A.AUTHOR_CODE like '%'||#{searchKeyword}||'%') TB
+
+                    ) 
+                WHERE rn BETWEEN #{firstIndex} + 1 AND #{firstIndex} + #{recordCountPerPage}
+        
+	</select> 
+
+	<select id="selectMenuCreatManageTotCnt_S" parameterType="comDefaultVO" resultType="int">
+		
+			SELECT COUNT(AUTHOR_CODE) AS "totcnt"
+			  FROM COMTNAUTHORINFO
+			 WHERE AUTHOR_CODE like '%'||#{searchKeyword}||'%'
+		
+	</select>
+
+	<select id="selectMenuCreatList_D" parameterType="egovframework.com.sym.mnu.mcm.service.MenuCreatVO" resultType="egovMap">
+		
+			SELECT
+				  A.MENU_NO AS MENU_NO
+				, A.MENU_ORDR AS MENU_ORDR
+				, A.MENU_NM AS MENU_NM
+				, A.UPPER_MENU_NO AS UPPER_MENU_ID
+			    , (SELECT count(B.MENU_NO) 
+			         FROM COMTNMENUCREATDTLS B   
+			        WHERE B.MENU_NO  = A.MENU_NO 
+			          AND B.AUTHOR_CODE = #{authorCode}) AS CHK_YEO_BU
+			FROM COMTNMENUINFO A
+			WHERE A.MENU_NO > 0
+			ORDER BY A.MENU_ORDR
+		 
+	</select> 
+
+	<insert id="insertMenuCreat_S">
+		
+			INSERT INTO COMTNMENUCREATDTLS ( AUTHOR_CODE ,MENU_NO )
+			VALUES (  #{authorCode}, #{menuNo} )
+		
+	</insert>
+
+	<select id="selectMenuCreatCnt_S" parameterType="egovframework.com.sym.mnu.mcm.service.MenuCreatVO" resultType="int">
+		
+			SELECT COUNT(AUTHOR_CODE) AS "totcnt"
+			  FROM COMTNAUTHORINFO
+			 WHERE AUTHOR_CODE = #{authorCode}
+		
+	</select>
+
+	<delete id="updateMenuCreat_S">
+		 
+		    UPDATE COMTNMENUCREATDTLS  
+		       SET MAPNG_CREAT_ID=#{mapCreatId} 
+		     WHERE AUTHOR_CODE=#{authorCode}
+		                                
+	</delete> 
+
+	<delete id="deleteMenuCreat_S">
+		                          
+			DELETE FROM COMTNMENUCREATDTLS              
+			 WHERE AUTHOR_CODE=#{authorCode}                
+		                                
+	</delete> 
+
+	<select id="selectAuthorByUsr" parameterType="comDefaultVO" resultType="egovframework.com.sym.mnu.mcm.service.MenuCreatVO">
+		
+		select AUTHOR_CODE AS "authorCode" from COMTNEMPLYRSCRTYESTBS
+		where SCRTY_DTRMN_TRGET_ID =
+			(select ESNTL_ID from COMVNUSERMASTER
+			where user_id = #{searchKeyword} )
+		
+	</select>
+
+	<select id="selectUsrByPk" parameterType="comDefaultVO" resultType="int">
+		
+		select count(AUTHOR_CODE) from COMTNEMPLYRSCRTYESTBS
+		where SCRTY_DTRMN_TRGET_ID =
+			(select ESNTL_ID from COMVNUSERMASTER
+			where user_id = #{searchKeyword} )
+		
+	</select>
+
+</mapper>
